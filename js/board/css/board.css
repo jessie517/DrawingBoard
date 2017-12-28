@@ -1,0 +1,45 @@
+.canvas-box {
+    width: 1000px;
+    height: 500px;
+    position: relative;
+    border: 1px solid #d3d3d3;
+    background-color: lightyellow;
+}
+
+.canvas-box canvas {
+    width: 1000px;
+    height: 500px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}
+
+.canvas-box .foreground {
+    z-index: 1001;
+}
+
+.canvas-box canvas.painting {
+    cursor: url("../img/cursor/pen.ico"), auto;
+}
+
+.canvas-box canvas.drawLine {
+    cursor: crosshair;
+}
+
+.canvas-box canvas.recting {
+    cursor: crosshair;
+}
+
+.canvas-box canvas.texting {
+    cursor: text;
+}
+
+.canvas-box .main-board-textarea{
+    z-index: 1002;
+    background: transparent;
+    border: 1px dotted;
+    resize: none;
+    position: absolute;
+    font-size: 12px;
+    font-family: 宋体;
+}

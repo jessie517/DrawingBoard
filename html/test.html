@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<link href="../js/board/css/board.css" rel="stylesheet">
+<body>
+    <div id="temp"></div>
+</body>
+<script src="../js/board/jquery-1.11.1.js"></script>
+<script src="../js/board/mainBoard.js"></script>
+<script src="../js/board/toolbar.js"></script>
+<script>
+    var canvas = $.Board.render("temp");
+    $.Board.renderToolBar(canvas);
+</script>
+</html>
