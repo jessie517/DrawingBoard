@@ -2,94 +2,104 @@
     $.Board = $.Board || {};
     $.extend($.Board, {
         renderToolBar: function (canvas, config) {
-            this.config = this.config || {};
-            $.extend(this.config, {
+            config = config || {};
+            $.extend(config, {
                 paint: true,
                 drawLine: true,
                 rect: true,
-                text: true
+                text: true,
+                eraser: true
             }, config)
 
-            var html = "<div class='main-board-toolbar' id='" + this.id + "-tool'>";
-            if (this.config.paint) {
-                html += "<button id='" + this.id + "-paint'>画笔</button>"
+            var html = "<div class='main-board-toolbar' id='" + canvas.containerId + "-tool'>";
+            if (config.paint) {
+                html += "<button id='" + canvas.containerId + "-paint'>画笔</button>"
             }
-            if (this.config.paint) {
-                html += "<button id='" + this.id + "-drawLine'>直线</button>"
+            if (config.paint) {
+                html += "<button id='" + canvas.containerId + "-drawLine'>直线</button>"
             }
-            if (this.config.rect) {
-                html += "<button id='" + this.id + "-rect'>矩形框</button>"
+            if (config.rect) {
+                html += "<button id='" + canvas.containerId + "-rect'>矩形框</button>"
             }
-            if (this.config.text) {
-                html += "<button id='" + this.id + "-text'>文字</button>"
+            if (config.text) {
+                html += "<button id='" + canvas.containerId + "-text'>文字</button>"
+            }
+            if (config.eraser) {
+                html += "<button id='" + canvas.containerId + "-eraser'>橡皮擦</button>"
             }
             html += "</div>";
-            $("#" + this.containerId).append(html);
-            this.bindEvent(canvas);
+            $("#" + canvas.containerId).append(html);
+            this.bindEvent(canvas, config);
         },
-        bindEvent: function (canvas) {
-            if (this.config.paint) {
-                $("#" + this.id + "-paint").on("click", function () {
+        bindEvent: function (canvas, config) {
+            if (config.paint) {
+                $("#" + canvas.containerId + "-paint").on("click", function () {
                     paint.init(canvas);
                 });
             }
-            if (this.config.drawLine) {
-                $("#" + this.id + "-drawLine").on("click", function () {
+            if (config.drawLine) {
+                $("#" + canvas.containerId + "-drawLine").on("click", function () {
                     drawLine.init(canvas);
                 });
             }
-            if (this.config.rect) {
-                $("#" + this.id + "-rect").on("click", function () {
+            if (config.rect) {
+                $("#" + canvas.containerId + "-rect").on("click", function () {
                     rect.init(canvas);
                 });
             }
-            if (this.config.text) {
-                $("#" + this.id + "-text").on("click", function () {
+            if (config.text) {
+                $("#" + canvas.containerId + "-text").on("click", function () {
                     text.init(canvas);
+                });
+            }
+            if (config.eraser) {
+                $("#" + canvas.containerId + "-eraser").on("click", function () {
+                    eraser.init(canvas);
                 });
             }
         }
     })
 
-    function clearClasses(foreCanvas) {
-        $(foreCanvas).removeClass("painting");
-        $(foreCanvas).removeClass("drawLine");
-        $(foreCanvas).removeClass("recting");
-        $(foreCanvas).removeClass("texting");
+    function clearClasses(previewCanvas) {
+        $(previewCanvas).removeClass("painting");
+        $(previewCanvas).removeClass("drawLine");
+        $(previewCanvas).removeClass("recting");
+        $(previewCanvas).removeClass("texting");
+        $(previewCanvas).removeClass("erasing");
     }
 
     var paint = {
         init: function (canvas) {
-            clearClasses(canvas.foreCanvas);
-            $(canvas.foreCanvas).addClass("painting");
+            clearClasses(canvas.previewCanvas);
+            $(canvas.previewCanvas).addClass("painting");
             this.drawEvent(canvas);
         },
         drawEvent: function (canvas) {
-            var backCtx = canvas.backCanvas.getContext("2d");
-            var offsetTop = $(canvas.backCanvas).parent()[0].offsetTop - 16;
-            var offsetLeft = $(canvas.backCanvas).parent()[0].offsetLeft;
+            var paintCtx = canvas.paintCanvas.getContext("2d");
+            var offsetTop = $(canvas.paintCanvas).parent()[0].offsetTop - 16;
+            var offsetLeft = $(canvas.paintCanvas).parent()[0].offsetLeft;
 
             function startDraw(event) {
-                backCtx.beginPath();
-                backCtx.moveTo(event.pageX - offsetLeft, event.pageY - offsetTop);
+                paintCtx.beginPath();
+                paintCtx.moveTo(event.pageX - offsetLeft, event.pageY - offsetTop);
             }
 
             function drawPreview(event) {
-                backCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop)
-                backCtx.stroke();
+                paintCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop)
+                paintCtx.stroke();
             }
 
             function endDraw(event) {
-                backCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop)
-                backCtx.stroke();
-                $(canvas.foreCanvas).unbind("mousemove");
-                $(canvas.foreCanvas).unbind("mouseup");
+                paintCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop)
+                paintCtx.stroke();
+                $(canvas.previewCanvas).unbind("mousemove");
+                $(canvas.previewCanvas).unbind("mouseup");
             }
 
-            $(canvas.foreCanvas).unbind();
-            $(canvas.foreCanvas).on("mousedown", function (event) {
+            $(canvas.previewCanvas).unbind();
+            $(canvas.previewCanvas).on("mousedown", function (event) {
                 startDraw(event);
-                $(canvas.foreCanvas).on("mousemove", function (event) {
+                $(canvas.previewCanvas).on("mousemove", function (event) {
                     drawPreview(event);
                 }).on("mouseup", function (event) {
                     endDraw(event);
@@ -101,17 +111,17 @@
 
     var drawLine = {
         init: function (canvas) {
-            clearClasses(canvas.foreCanvas);
-            $(canvas.foreCanvas).addClass("drawLine");
+            clearClasses(canvas.previewCanvas);
+            $(canvas.previewCanvas).addClass("drawLine");
             this.drawEvent(canvas);
         },
         drawEvent: function (canvas) {
-            var foreCtx = canvas.foreCanvas.getContext("2d");
-            foreCtx.globalCompositeOperation = "copy";
-            var backCtx = canvas.backCanvas.getContext("2d");
+            var previewCtx = canvas.previewCanvas.getContext("2d");
+            previewCtx.globalCompositeOperation = "copy";
+            var paintCtx = canvas.paintCanvas.getContext("2d");
 
-            var offsetTop = $(canvas.backCanvas).parent()[0].offsetTop;
-            var offsetLeft = $(canvas.backCanvas).parent()[0].offsetLeft;
+            var offsetTop = $(canvas.paintCanvas).parent()[0].offsetTop;
+            var offsetLeft = $(canvas.paintCanvas).parent()[0].offsetLeft;
 
             var startX, startY;
 
@@ -121,25 +131,25 @@
             }
 
             function drawPreview(event) {
-                foreCtx.beginPath();
-                foreCtx.moveTo(startX, startY);
-                foreCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop);
-                foreCtx.stroke();
+                previewCtx.beginPath();
+                previewCtx.moveTo(startX, startY);
+                previewCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop);
+                previewCtx.stroke();
             }
 
             function endDraw(event) {
-                backCtx.beginPath();
-                backCtx.moveTo(startX, startY);
-                backCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop)
-                backCtx.stroke();
-                $(canvas.foreCanvas).unbind("mousemove");
-                $(canvas.foreCanvas).unbind("mouseup");
+                paintCtx.beginPath();
+                paintCtx.moveTo(startX, startY);
+                paintCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop)
+                paintCtx.stroke();
+                $(canvas.previewCanvas).unbind("mousemove");
+                $(canvas.previewCanvas).unbind("mouseup");
             }
 
-            $(canvas.foreCanvas).unbind();
-            $(canvas.foreCanvas).on("mousedown", function (event) {
+            $(canvas.previewCanvas).unbind();
+            $(canvas.previewCanvas).on("mousedown", function (event) {
                 startDraw(event);
-                $(canvas.foreCanvas).on("mousemove", function (event) {
+                $(canvas.previewCanvas).on("mousemove", function (event) {
                     drawPreview(event);
                 }).on("mouseup", function (event) {
                     endDraw(event);
@@ -150,17 +160,17 @@
 
     var rect = {
         init: function (canvas) {
-            clearClasses(canvas.foreCanvas);
-            $(canvas.foreCanvas).addClass("recting");
+            clearClasses(canvas.previewCanvas);
+            $(canvas.previewCanvas).addClass("recting");
             this.drawEvent(canvas);
         },
         drawEvent: function (canvas) {
-            var foreCtx = canvas.foreCanvas.getContext("2d");
-            foreCtx.globalCompositeOperation = "copy";
-            var backCtx = canvas.backCanvas.getContext("2d");
+            var previewCtx = canvas.previewCanvas.getContext("2d");
+            previewCtx.globalCompositeOperation = "copy";
+            var paintCtx = canvas.paintCanvas.getContext("2d");
 
-            var offsetTop = $(canvas.backCanvas).parent()[0].offsetTop;
-            var offsetLeft = $(canvas.backCanvas).parent()[0].offsetLeft;
+            var offsetTop = $(canvas.paintCanvas).parent()[0].offsetTop;
+            var offsetLeft = $(canvas.paintCanvas).parent()[0].offsetLeft;
 
             var startX, startY;
 
@@ -172,26 +182,26 @@
             function drawPreview(event) {
                 var width = event.pageX - offsetLeft - startX;
                 var height = event.pageY - offsetTop - startY;
-                foreCtx.beginPath();
-                foreCtx.rect(startX, startY, width, height);
-                foreCtx.stroke();
+                previewCtx.beginPath();
+                previewCtx.rect(startX, startY, width, height);
+                previewCtx.stroke();
             }
 
             function endDraw(event) {
                 var width = event.pageX - offsetLeft - startX;
                 var height = event.pageY - offsetTop - startY;
-                backCtx.beginPath();
-                backCtx.rect(startX, startY, width, height);
-                backCtx.stroke();
+                paintCtx.beginPath();
+                paintCtx.rect(startX, startY, width, height);
+                paintCtx.stroke();
 
-                $(canvas.foreCanvas).unbind("mousemove");
-                $(canvas.foreCanvas).unbind("mouseup");
+                $(canvas.previewCanvas).unbind("mousemove");
+                $(canvas.previewCanvas).unbind("mouseup");
             }
 
-            $(canvas.foreCanvas).unbind();
-            $(canvas.foreCanvas).on("mousedown", function (event) {
+            $(canvas.previewCanvas).unbind();
+            $(canvas.previewCanvas).on("mousedown", function (event) {
                 startDraw(event);
-                $(canvas.foreCanvas).on("mousemove", function (event) {
+                $(canvas.previewCanvas).on("mousemove", function (event) {
                     drawPreview(event);
                 }).on("mouseup", function (event) {
                     endDraw(event);
@@ -202,32 +212,78 @@
 
     var text = {
         init: function (canvas) {
-            clearClasses(canvas.foreCanvas);
-            $(canvas.foreCanvas).addClass("texting");
+            clearClasses(canvas.previewCanvas);
+            $(canvas.previewCanvas).addClass("texting");
             this.drawEvent(canvas);
         },
         drawEvent: function (canvas) {
-            var backCtx = canvas.backCanvas.getContext("2d");
-            backCtx.font = "12px 宋体";
-            var offsetTop = $(canvas.backCanvas).parent()[0].offsetTop;
-            var offsetLeft = $(canvas.backCanvas).parent()[0].offsetLeft;
+            var paintCtx = canvas.paintCanvas.getContext("2d");
+            paintCtx.font = "12px 宋体";
+            var offsetTop = $(canvas.paintCanvas).parent()[0].offsetTop;
+            var offsetLeft = $(canvas.paintCanvas).parent()[0].offsetLeft;
 
             var startX, startY;
 
-            $(canvas.foreCanvas).unbind();
-            $(canvas.foreCanvas).on("click", function (event) {
-                $(canvas.backCanvas).siblings(".main-board-textarea").remove();
+            $(canvas.previewCanvas).unbind();
+            $(canvas.previewCanvas).on("click", function (event) {
                 var startX = event.pageX - offsetLeft;
                 var startY = event.pageY - offsetTop;
-                $(canvas.backCanvas).parent().append("<textarea class='main-board-textarea' cols='20' rows='3'></textarea>");
+                $(canvas.paintCanvas).parent().append("<textarea class='main-board-textarea' cols='20' rows='1'></textarea>");
 
-                var textElement = $(canvas.backCanvas).siblings(".main-board-textarea");
+                var textElement = $(canvas.paintCanvas).siblings(".main-board-textarea");
                 textElement.css({left: startX, top: startY - 14});
                 textElement.focus();
                 textElement.on("blur", function () {
                     var text = $(this).val();
-                    backCtx.fillText(text, startX, startY);
+                    paintCtx.fillText(text, startX, startY);
+                    $(this).remove();
                 });
+            });
+        }
+    }
+
+    var eraser = {
+        init: function (canvas) {
+            clearClasses(canvas.previewCanvas);
+            $(canvas.previewCanvas).addClass("erasing");
+            this.drawEvent(canvas);
+        },
+        drawEvent: function (canvas) {
+            var paintCtx = canvas.paintCanvas.getContext("2d");
+            var offsetTop = $(canvas.paintCanvas).parent()[0].offsetTop;
+            var offsetLeft = $(canvas.paintCanvas).parent()[0].offsetLeft;
+
+            function startDraw(event) {
+                paintCtx.globalCompositeOperation = "";
+                paintCtx.lineWidth = 4;
+                paintCtx.beginPath();
+                paintCtx.moveTo(event.pageX - offsetLeft, event.pageY - offsetTop);
+            }
+
+            function drawPreview(event) {
+                paintCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop)
+                paintCtx.stroke();
+            }
+
+            function endDraw(event) {
+                paintCtx.lineTo(event.pageX - offsetLeft, event.pageY - offsetTop)
+                paintCtx.stroke();
+
+                // 恢复会话层的状态
+                paintCtx.globalCompositeOperation = "";
+                paintCtx.lineWidth = 1;
+                $(canvas.previewCanvas).unbind("mousemove");
+                $(canvas.previewCanvas).unbind("mouseup");
+            }
+
+            $(canvas.previewCanvas).unbind();
+            $(canvas.previewCanvas).on("mousedown", function (event) {
+                startDraw(event);
+                $(canvas.previewCanvas).on("mousemove", function (event) {
+                    drawPreview(event);
+                }).on("mouseup", function (event) {
+                    endDraw(event);
+                })
             });
         }
     }

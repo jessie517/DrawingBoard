@@ -2,26 +2,27 @@
     $.Board = $.Board || {};
     $.extend($.Board, {
         version: "1.0.0",
-        getDefaultTemplate: function () {
-            return "<div class='canvas-box'><canvas class='background' id='" + this.backgroudId + "' ></canvas>"
-                +"<canvas calss='foreground' id='" + this.foregroudId + "'></canvas></div>";
+        getDefaultTemplate: function (paintCanvasId, previewCanvasId) {
+            return "<div class='canvas-box'><canvas class='paintCanvas' id='" + paintCanvasId + "' ></canvas>"
+                +"<canvas calss='previewCanvas' id='" + previewCanvasId + "'></canvas></div>";
         },
         render: function (parentId) {
-            this.containerId = parentId;
-            this.backgroudId = "main-board-" + parentId + "-backgroud";
-            this.foregroudId = "main-board-" + parentId + "-foreground"
-            var template = this.getDefaultTemplate();
-            $("#" + parentId).html(template);
+            var containerId = parentId;
+            var paintCanvasId = "main-board-" + parentId + "-paintCanvas";
+            var previewCanvasId = "main-board-" + parentId + "-previewCanvas"
 
-            var backCanvas = document.getElementById(this.backgroudId);
-            backCanvas.width = backCanvas.offsetWidth;
-            backCanvas.height = backCanvas.offsetHeight;
+            var template = this.getDefaultTemplate(paintCanvasId, previewCanvasId);
+            $("#" + containerId).html(template);
 
-            var foreCanvas = document.getElementById(this.foregroudId);
-            foreCanvas.width = foreCanvas.offsetWidth;
-            foreCanvas.height = foreCanvas.offsetHeight;
+            var paintCanvas = document.getElementById(paintCanvasId);
+            paintCanvas.width = paintCanvas.offsetWidth;
+            paintCanvas.height = paintCanvas.offsetHeight;
 
-            return {backCanvas:backCanvas, foreCanvas: foreCanvas};
+            var previewCanvas = document.getElementById(previewCanvasId);
+            previewCanvas.width = previewCanvas.offsetWidth;
+            previewCanvas.height = previewCanvas.offsetHeight;
+
+            return {containerId:containerId, paintCanvas:paintCanvas, previewCanvas: previewCanvas};
         },
         renderToolBar: function(){
 
