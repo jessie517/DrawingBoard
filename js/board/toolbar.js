@@ -60,7 +60,9 @@
         }
     })
 
-    function clearClasses(previewCanvas) {
+    function clearPreview(previewCanvas) {
+        var previewCxt = previewCanvas.getContext("2d");
+        previewCxt.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
         $(previewCanvas).removeClass("painting");
         $(previewCanvas).removeClass("drawLine");
         $(previewCanvas).removeClass("recting");
@@ -70,7 +72,7 @@
 
     var paint = {
         init: function (canvas) {
-            clearClasses(canvas.previewCanvas);
+            clearPreview(canvas.previewCanvas);
             $(canvas.previewCanvas).addClass("painting");
             this.drawEvent(canvas);
         },
@@ -111,7 +113,7 @@
 
     var drawLine = {
         init: function (canvas) {
-            clearClasses(canvas.previewCanvas);
+            clearPreview(canvas.previewCanvas);
             $(canvas.previewCanvas).addClass("drawLine");
             this.drawEvent(canvas);
         },
@@ -160,7 +162,7 @@
 
     var rect = {
         init: function (canvas) {
-            clearClasses(canvas.previewCanvas);
+            clearPreview(canvas.previewCanvas);
             $(canvas.previewCanvas).addClass("recting");
             this.drawEvent(canvas);
         },
@@ -212,7 +214,7 @@
 
     var text = {
         init: function (canvas) {
-            clearClasses(canvas.previewCanvas);
+            clearPreview(canvas.previewCanvas);
             $(canvas.previewCanvas).addClass("texting");
             this.drawEvent(canvas);
         },
@@ -244,17 +246,17 @@
 
     var eraser = {
         init: function (canvas) {
-            clearClasses(canvas.previewCanvas);
+            clearPreview(canvas.previewCanvas);
             $(canvas.previewCanvas).addClass("erasing");
             this.drawEvent(canvas);
         },
         drawEvent: function (canvas) {
             var paintCtx = canvas.paintCanvas.getContext("2d");
-            var offsetTop = $(canvas.paintCanvas).parent()[0].offsetTop;
+            var offsetTop = $(canvas.paintCanvas).parent()[0].offsetTop - 12;
             var offsetLeft = $(canvas.paintCanvas).parent()[0].offsetLeft;
 
             function startDraw(event) {
-                paintCtx.globalCompositeOperation = "";
+                paintCtx.globalCompositeOperation = "destination-out";
                 paintCtx.lineWidth = 4;
                 paintCtx.beginPath();
                 paintCtx.moveTo(event.pageX - offsetLeft, event.pageY - offsetTop);
@@ -270,7 +272,7 @@
                 paintCtx.stroke();
 
                 // 恢复会话层的状态
-                paintCtx.globalCompositeOperation = "";
+                paintCtx.globalCompositeOperation = "source-over";
                 paintCtx.lineWidth = 1;
                 $(canvas.previewCanvas).unbind("mousemove");
                 $(canvas.previewCanvas).unbind("mouseup");
